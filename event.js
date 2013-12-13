@@ -9,79 +9,100 @@
  *
  */
 
-;
-var evt = (function(global) {'use strict';
+;var cacheId = 'cache' + setTimeout(function() {
+}, 0);
+
+var evt = (function(global, cacheId) {
+  'use strict';
   var isIE = !!document.all;
+  var typeExpress = /^[a-z]+$/i;
+
+  // 缓存所有的事件。
+  var events = {};
+
+  // 产生一个唯一的键值。
+  var globalId = 1;
 
   function wrap(node) {
     return new _wrap(node);
   }
 
   function _wrap(node) {
-    var _node = (node && nodeType == 1) ? node : '';
+    var _node = (node && node.nodeType == 1) ? node : '';
     if (!_node) {
       return 'Invalidate node !';
     }
 
-    // 缓存自定义事件，以及当前的node对象。
-    this._events = {};
+    _node[cacheId] || (_node[cacheId] = globalId++);
     this._node = _node;
   }
 
   function _type(o) {
     var type = {}.toString.call(o);
-    return type.slice(7, -1).toLowerCase();
+    return type.slice(8, -1).toLowerCase();
   }
 
   var proto = _wrap.prototype;
   proto.bind = function(type, handle, capture) {
-    if (_type(type) !== 'string' || _type(type) !== 'function') {
+    if (_type(type) !== 'string' || !typeExpress.test(type) || _type(handle) !== 'function') {
       return 'Invalidate params !';
     }
+
     var node = this._node;
     if (isIE) {
-      var events = this._events;
       node.attachEvent('on' + type, handle);
     } else {
       node.addEventListener(type, handle, capture);
     }
-    if (!events[type]) {
-      events[type] = [handle];
-    } else {
-      events[type].push(handle);
+
+    // 如果还未开始对这个对象有缓存，则加入缓存序列。
+    if (!events[node[cacheId]]) {
+      events[node[cacheId]] = {};
     }
-    return 1;
+    var evts = events[node[cacheId]];
+    if (evts && evts[type]) {
+      evts[type].push(handle);
+    } else {
+      evts[type] = [handle];
+    }
+    return this;
   };
 
   proto.unbind = function(type, handle) {
-    if ((_type(type) !== 'string') || (handle && _type(handle) !== 'function')) {
+    if (_type(type) !== 'string' || !typeExpress.test(type) || (handle && _type(handle) !== 'function')) {
       return 'Invalidate params !';
     }
-    var events = this._events;
-    if (!events[type]) {
+    var evts = events[this._node[cacheId]];
+    if (!evts[type]) {
       return 'Not exist specified event !';
     }
-    for (var i = 0; i < events[type].length; i++) {
-      if (events[i] == handle) {
-        events.splice(i, 1);
+
+    if (handle) {
+      for (var i = 0; i < evts[type].length; i++) {
+        if (evts[i] == handle) {
+          evts[type].splice(i, 1);
+        }
       }
+    } else {
+      evts[type] = [];
     }
-    return 1;
+    return this;
   };
 
-  proto.trigger = function() {
-
-    // 使用原生的customEvent对象，createEvent已经不推荐被使用。
-    try {
-      
-    } catch (e) {
-      ;
+  proto.trigger = function(type) {
+    if (_type(type) !== 'string') {
+      return 'Invalidate params !';
     }
 
-    return 1;
+    var evts = events[this._node[cacheId]];
+    if (evts[type]) {
+      var evtsList = evts[type];
+      for (var i in evtsList) {
+        evtsList[i].call(this._node);
+      }
+    }
+    return this;
   };
 
   return wrap;
-
-})(this);
-
+})(this, cacheId);
