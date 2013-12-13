@@ -1,4 +1,10 @@
 /**
+ * 事件管理组件
+ *
+ * 版权所有(C) 2013 EchoFUN (xukai.ken@gmail.com)
+ * 
+ * 2013.12.12 初始化文件。
+ * 
  * Example:
  *   var test = document.getElementById('test');
  *   evt(test).bind('custom', function() {
@@ -9,12 +15,11 @@
  *
  */
 
-;var cacheId = 'cache' + setTimeout(function() {
-}, 0);
+;var cacheId = 'cache' + setTimeout(function() {}, 0);
 
 var evt = (function(global, cacheId) {
   'use strict';
-  var isIE = !!document.all;
+  var isIE = !!document.attachEvent;
   var typeExpress = /^[a-z]+$/i;
 
   // 缓存所有的事件。
@@ -68,18 +73,24 @@ var evt = (function(global, cacheId) {
     return this;
   };
 
-  proto.unbind = function(type, handle) {
-    if (_type(type) !== 'string' || !typeExpress.test(type) || (handle && _type(handle) !== 'function')) {
+  proto.unbind = function(type, handle, capture) {
+    if (_type(type) !== 'string' || !typeExpress.test(type) || (handle && (_type(handle) !== 'function'))) {
       return 'Invalidate params !';
     }
-    var evts = events[this._node[cacheId]];
+    var node = this._node;
+    var evts = events[node[cacheId]];
     if (!evts[type]) {
       return 'Not exist specified event !';
     }
-
+    
+    if (isIE) {
+      node.detachEvent('on' + type, handle);
+    } else {
+      node.removeEventListener(type, handle, capture || false);
+    }
     if (handle) {
       for (var i = 0; i < evts[type].length; i++) {
-        if (evts[i] == handle) {
+        if (evts[type][i] == handle) {
           evts[type].splice(i, 1);
         }
       }

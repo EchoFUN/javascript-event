@@ -9,14 +9,7 @@ evt(test).bind('click', function() {
   alert('I am !');
 });
 
-// evt(test).trigger('click');
-
-evt(test2).bind('show', function() {
-  alert('I am 2 !');
-});
-
-evt(test2).unbind('show');
-evt(test2).trigger('show');
+evt(test).unbind('click');
 
 /*
 $(test).bind('clicks', function(){
