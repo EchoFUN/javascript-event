@@ -104,12 +104,14 @@ var evt = (function(global, cacheId) {
     if (_type(type) !== 'string') {
       return 'Invalidate params !';
     }
-
+    
+    var args = [].prototype.slice.call(arguments);
+    args.shift();
     var evts = events[this._node[cacheId]];
     if (evts[type]) {
       var evtsList = evts[type];
       for (var i in evtsList) {
-        evtsList[i].call(this._node);
+        evtsList[i].apply(this._node, args);
       }
     }
     return this;
