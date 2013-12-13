@@ -1,0 +1,1 @@
+javascript事件系统模拟
