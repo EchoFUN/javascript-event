@@ -5,11 +5,11 @@
 
 var test = document.getElementById('test'), test2 = document.getElementById('test2');
 
-evt(test).bind('click', function() {
+evt(test).bind('clicks', function(data) {
   alert('I am !');
 });
 
-evt(test).unbind('click');
+evt(test).trigger('clicks', 1, 2, 3);
 
 /*
 $(test).bind('clicks', function(){

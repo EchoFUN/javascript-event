@@ -105,7 +105,7 @@ var evt = (function(global, cacheId) {
       return 'Invalidate params !';
     }
     
-    var args = [].prototype.slice.call(arguments);
+    var args = Array.prototype.slice.call(arguments);
     args.shift();
     var evts = events[this._node[cacheId]];
     if (evts[type]) {
