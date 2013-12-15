@@ -2,9 +2,10 @@
  * 事件管理组件
  *
  * 版权所有(C) 2013 EchoFUN (xukai.ken@gmail.com)
- * 
+ *
  * 2013.12.12 初始化文件。
- * 
+ * 2013.12.15 修复无法整个迭代unbind数组的bug。
+ *
  * Example:
  *   var test = document.getElementById('test');
  *   evt(test).bind('custom', function() {
@@ -82,18 +83,22 @@ var evt = (function(global, cacheId) {
     if (!evts[type]) {
       return 'Not exist specified event !';
     }
-    
+
     if (isIE) {
       node.detachEvent('on' + type, handle);
     } else {
       node.removeEventListener(type, handle, capture || false);
     }
     if (handle) {
-      for (var i = 0; i < evts[type].length; i++) {
-        if (evts[type][i] == handle) {
-          evts[type].splice(i, 1);
+      
+      // Fix bug for cannot iterate the total array.
+      var evtsList = evts[type], tempList = [];
+      for (var i in evtsList) {
+        if (evtsList[i] !== handle) {
+          tempList.push(evtsList[i]);
         }
       }
+      evts[type] = tempList;
     } else {
       evts[type] = [];
     }
@@ -104,12 +109,13 @@ var evt = (function(global, cacheId) {
     if (_type(type) !== 'string') {
       return 'Invalidate params !';
     }
-    
+
     var args = Array.prototype.slice.call(arguments);
     args.shift();
+
     var evts = events[this._node[cacheId]];
-    if (evts[type]) {
-      var evtsList = evts[type];
+    var evtsList = evts[type];
+    if (evtsList && evtsList.length) {
       for (var i in evtsList) {
         evtsList[i].apply(this._node, args);
       }
@@ -118,4 +124,4 @@ var evt = (function(global, cacheId) {
   };
 
   return wrap;
-})(this, cacheId);
+})(this, cacheId); 
