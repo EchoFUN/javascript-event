@@ -102,6 +102,7 @@ var evt = (function(global, cacheId) {
     } else {
       evts[type] = [];
     }
+    
     return this;
   };
 
